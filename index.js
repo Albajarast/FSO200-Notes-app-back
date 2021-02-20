@@ -19,13 +19,16 @@ const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: 'unknown endpoint' })
 }
 
-const errorHandler = (err, request, response, next) => {
-  console.error(err.message)
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
 
-  if (err.name === 'CastError' && err.kind == 'ObjectId') {
+  if (error.name === 'CastError' && error.kind == 'ObjectId') {
     return response.status(400).send({ error: 'Wrong id format' })
+  } else if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message })
   }
-  next(err)
+
+  next(error)
 }
 // END
 
@@ -50,25 +53,22 @@ const generateId = () => {
   return maxId + 1
 }
 
-app.post('/api/notes', (request, response) => {
+app.post('/api/notes', (request, response, next) => {
   const body = request.body
 
-  if (!body.content) {
-    return response.status(400).json({
-      error: 'content missing'
-    })
-  }
-
   const note = new Note({
-    id: generateId(),
     content: body.content,
     important: body.important || false,
     date: new Date()
   })
 
-  note.save().then((savedNote) => {
-    response.json(savedNote)
-  })
+  note
+    .save()
+    .then((savedNote) => savedNote.toJSON())
+    .then((savedAndFormattedNote) => {
+      response.json(savedAndFormattedNote)
+    })
+    .catch((error) => next(error))
 })
 
 app.get('/api/notes/:id', (request, response, next) => {
