@@ -1,8 +1,10 @@
+require('dotenv').config()
 const express = require('express')
 const app = express()
 const cors = require('cors')
+const Note = require('./models/note')
 
-const PORT = process.env.PORT || 3003
+const PORT = process.env.PORT
 
 // Own middleware
 const requestLogger = (request, response, next) => {
@@ -49,7 +51,10 @@ app.get('/', (request, response) => {
 })
 
 app.get('/api/notes', (request, response) => {
-  response.json(notes)
+  Note.find({}).then((notes) => {
+    response.json(notes)
+  })
+  // response.json(persons)
 })
 
 app.get('/api/notes/:id', (request, response) => {
@@ -83,16 +88,16 @@ app.post('/api/notes', (request, response) => {
     })
   }
 
-  const note = {
+  const note = new Note({
     id: generateId(),
     content: body.content,
     important: body.important || false,
     date: new Date()
-  }
+  })
 
-  notes = notes.concat(note)
-
-  response.json(note)
+  note.save().then((savedNote) => {
+    response.json(savedNote)
+  })
 })
 
 app.use(unknownEndpoint)
