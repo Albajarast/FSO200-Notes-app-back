@@ -22,7 +22,7 @@ const unknownEndpoint = (request, response) => {
 const errorHandler = (error, request, response, next) => {
   console.error(error.message)
 
-  if (error.name === 'CastError' && error.kind == 'ObjectId') {
+  if (error.name === 'CastError' && error.kind === 'ObjectId') {
     return response.status(400).send({ error: 'Wrong id format' })
   } else if (error.name === 'ValidationError') {
     return response.status(400).json({ error: error.message })
@@ -45,13 +45,12 @@ app.get('/api/notes', (request, response) => {
   Note.find({}).then((notes) => {
     response.json(notes)
   })
-  // response.json(persons)
 })
 
-const generateId = () => {
-  const maxId = notes.length > 0 ? Math.max(...notes.map((n) => n.id)) : 0
-  return maxId + 1
-}
+// const generateId = () => {
+//   const maxId = notes.length > 0 ? Math.max(...notes.map((n) => n.id)) : 0
+//   return maxId + 1
+// }
 
 app.post('/api/notes', (request, response, next) => {
   const body = request.body
@@ -100,7 +99,7 @@ app.put('/api/notes/:id', (request, response, next) => {
 
 app.delete('/api/notes/:id', (request, response, next) => {
   Note.findByIdAndRemove(request.params.id)
-    .then((result) => {
+    .then(() => {
       response.status(204).end()
     })
     .catch((error) => next(error))
