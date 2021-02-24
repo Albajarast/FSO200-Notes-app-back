@@ -8,7 +8,7 @@ router
     const notes = await Note.find({})
     response.json(notes)
   })
-  .post((request, response, next) => {
+  .post(async (request, response, next) => {
     const body = request.body
 
     const note = new Note({
@@ -17,24 +17,24 @@ router
       date: new Date()
     })
 
-    note
-      .save()
-      .then((savedNote) => {
-        response.json(savedNote)
-      })
-      .catch((error) => next(error))
+    try {
+      const savedNote = await note.save()
+      response.json(savedNote)
+    } catch (err) {
+      next(err)
+    }
   })
 
 router.get('/:id', (request, response, next) => {
   Note.findById(request.params.id)
-    .then((note) => {
+    .then(note => {
       if (note) {
         response.json(note)
       } else {
         response.status(404).end()
       }
     })
-    .catch((error) => next(error))
+    .catch(error => next(error))
 })
 
 router.delete('/:id', (request, response, next) => {
@@ -42,7 +42,7 @@ router.delete('/:id', (request, response, next) => {
     .then(() => {
       response.status(204).end()
     })
-    .catch((error) => next(error))
+    .catch(error => next(error))
 })
 
 router.put('/:id', (request, response, next) => {
@@ -54,10 +54,10 @@ router.put('/:id', (request, response, next) => {
   }
 
   Note.findByIdAndUpdate(request.params.id, note, { new: true })
-    .then((updatedNote) => {
+    .then(updatedNote => {
       response.json(updatedNote)
     })
-    .catch((error) => next(error))
+    .catch(error => next(error))
 })
 
 module.exports = router
