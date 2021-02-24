@@ -4,10 +4,9 @@ const Note = require('../models/note')
 
 router
   .route('/')
-  .get((request, response) => {
-    Note.find({}).then((notes) => {
-      response.json(notes)
-    })
+  .get(async (request, response) => {
+    const notes = await Note.find({})
+    response.json(notes)
   })
   .post((request, response, next) => {
     const body = request.body
