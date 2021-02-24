@@ -8,7 +8,7 @@ router
     const notes = await Note.find({})
     response.json(notes)
   })
-  .post(async (request, response, next) => {
+  .post(async (request, response) => {
     const body = request.body
 
     const note = new Note({
@@ -17,35 +17,23 @@ router
       date: new Date()
     })
 
-    try {
-      const savedNote = await note.save()
-      response.json(savedNote)
-    } catch (err) {
-      next(err)
-    }
+    const savedNote = await note.save()
+    response.json(savedNote)
   })
 
 router
   .route('/:id')
-  .get(async (request, response, next) => {
-    try {
-      const note = await Note.findById(request.params.id)
-      if (note) {
-        response.json(note)
-      } else {
-        response.status(404).end()
-      }
-    } catch (error) {
-      next(error)
+  .get(async (request, response) => {
+    const note = await Note.findById(request.params.id)
+    if (note) {
+      response.json(note)
+    } else {
+      response.status(404).end()
     }
   })
-  .delete(async (request, response, next) => {
-    try {
-      await Note.findByIdAndRemove(request.params.id)
-      response.status(204).end()
-    } catch (error) {
-      next(error)
-    }
+  .delete(async (request, response) => {
+    await Note.findByIdAndRemove(request.params.id)
+    response.status(204).end()
   })
   .put((request, response, next) => {
     const body = request.body

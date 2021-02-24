@@ -1,5 +1,6 @@
 const { MONGODB_URI, MONGODB_USER } = require('./utils/config')
 const express = require('express')
+require('express-async-errors')
 const app = express()
 const cors = require('cors')
 const notesRouter = require('./controllers/notes')
@@ -23,7 +24,7 @@ mongoose
   .then(() => {
     logger.info(`Connected to MongoDB Atlas as ${MONGODB_USER}`)
   })
-  .catch((error) => {
+  .catch(error => {
     logger.error('error connecting to MongoDB:', error.message)
   })
 
