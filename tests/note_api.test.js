@@ -1,19 +1,15 @@
 const mongoose = require('mongoose')
 const supertest = require('supertest')
+const {
+  initialNotes,
+  nonExistingId,
+  notesInDb
+} = require('../tests/test_helper')
 const app = require('../app')
 const Note = require('../models/note')
-const initialNotes = [
-  {
-    content: 'HTML is easy',
-    date: new Date(),
-    important: false
-  },
-  {
-    content: 'Browser can execute only Javascript',
-    date: new Date(),
-    important: true
-  }
-]
+
+const api = supertest(app)
+
 beforeEach(async () => {
   await Note.deleteMany({})
   let noteObject = new Note(initialNotes[0])
@@ -21,8 +17,6 @@ beforeEach(async () => {
   noteObject = new Note(initialNotes[1])
   await noteObject.save()
 })
-
-const api = supertest(app)
 
 test('notes are returned as json', async () => {
   await api
@@ -40,7 +34,7 @@ test('all notes are returned', async () => {
 test('a specific note is within the returned notes', async () => {
   const response = await api.get('/api/notes')
 
-  const contents = response.body.map((r) => r.content)
+  const contents = response.body.map(r => r.content)
   expect(contents).toContain('Browser can execute only Javascript')
 })
 
@@ -56,11 +50,10 @@ test('a valid note can be added', async () => {
     .expect(200)
     .expect('Content-Type', /application\/json/)
 
-  const response = await api.get('/api/notes')
+  const notesAtEnd = await notesInDb()
+  expect(notesAtEnd).toHaveLength(initialNotes.length + 1)
 
-  const contents = response.body.map((r) => r.content)
-
-  expect(response.body).toHaveLength(initialNotes.length + 1)
+  const contents = notesAtEnd.map(n => n.content)
   expect(contents).toContain('async/await simplifies making async calls')
 })
 
@@ -71,9 +64,9 @@ test('note without content is not added', async () => {
 
   await api.post('/api/notes').send(newNote).expect(400)
 
-  const response = await api.get('/api/notes')
+  const notesAtEnd = await notesInDb()
 
-  expect(response.body).toHaveLength(initialNotes.length)
+  expect(notesAtEnd).toHaveLength(initialNotes.length)
 })
 
 afterAll(() => {
